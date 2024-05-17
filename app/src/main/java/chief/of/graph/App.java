@@ -3,12 +3,14 @@
  */
 package chief.of.graph;
 
-public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
+import javax.swing.*;
+import java.lang.reflect.InvocationTargetException;
 
-    public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+import chief.of.graph.containers.MainFrame;
+
+public class App {
+    public static void main(String[] args) throws InterruptedException, InvocationTargetException {
+        Runnable initFrame = MainFrame::new;
+        SwingUtilities.invokeAndWait(initFrame);
     }
 }
