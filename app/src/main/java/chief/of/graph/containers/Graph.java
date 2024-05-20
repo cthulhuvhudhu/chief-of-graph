@@ -1,7 +1,8 @@
 package chief.of.graph.containers;
 
 import chief.of.graph.SwingUtil;
-import chief.of.graph.models.Modes;
+import chief.of.graph.actions.AlgorithmRunner;
+import chief.of.graph.models.Model;
 import chief.of.graph.models.Vertex;
 
 import javax.swing.*;
@@ -10,9 +11,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.util.Arrays;
+import java.util.Collection;
 
-import static chief.of.graph.containers.MainFrame.modeLabel;
 import chief.of.graph.models.Edge;
+import chief.of.graph.states.AlgoModes;
+import chief.of.graph.states.EditModes;
 
 public class Graph extends JPanel {
 
@@ -26,12 +29,12 @@ public class Graph extends JPanel {
         }
         Graph graph = new Graph();
         graph.setLayout(null);
-        graph.setName("Graph");
+        graph.setName(GRAPH_NAMEFIX);
         graph.setBackground(SwingUtil.CREAM_COLOR);
         graph.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (modeLabel.getText().equals(Modes.ADD_VERTEX.getName()) && isValidLocation(e.getX(), e.getY())) {
+                if (EditModes.LABEL.getText().equals(EditModes.ADD_VERTEX.getCopy()) && isValidLocation(e.getX(), e.getY())) {
                     Vertex newVertex = Vertex.prompt(graph, e.getX(), e.getY());
                     if (newVertex != null && Arrays.stream(instance.getComponents())
                             .noneMatch(c -> c.getName().equals(newVertex.getName()))) {
@@ -39,12 +42,14 @@ public class Graph extends JPanel {
                         graph.revalidate();
                         graph.repaint();
                     }
-                } else if (modeLabel.getText().equals(Modes.ADD_EDGE.getName())) {
+                } else if (EditModes.LABEL.getText().equals(EditModes.ADD_EDGE.getCopy())) {
                     addEdge(e);
-                } else if (modeLabel.getText().equals(Modes.REMOVE_VERTEX.getName())) {
+                } else if (EditModes.LABEL.getText().equals(EditModes.REMOVE_VERTEX.getCopy())) {
                     removeVertex(instance.getComponentAt(e.getX(), e.getY()));
-                } else if (modeLabel.getText().equals(Modes.REMOVE_EDGE.getName())) {
+                } else if (EditModes.LABEL.getText().equals(EditModes.REMOVE_EDGE.getCopy())) {
                     removeEdge(e.getX(), e.getY());
+                } else if (EditModes.LABEL.getText().equals(EditModes.NONE.getCopy()) && AlgoModes.currentAlgorithm != AlgoModes.Algorithm.NOT_SELECTED) {
+                    AlgorithmRunner.of(findVertex(e.getX(), e.getY())).run();
                 }
             }
         });
@@ -52,8 +57,38 @@ public class Graph extends JPanel {
         return graph;
     }
 
+    public static Collection<Vertex> getVertices() {
+        return Arrays.stream(instance.getComponents())
+                .filter(c -> c instanceof Vertex)
+                .map(c -> (Vertex) c)
+                .toList();
+    }
+
+    public static Collection<Edge> getEdges() {
+        return Arrays.stream(instance.getComponents())
+                .filter(c -> c instanceof Edge)
+                .map(c -> (Edge) c)
+                .toList();
+    }
+
+    public static Edge findEdge(Vertex source, Vertex target) {
+        return getEdges().stream()
+                .filter(e -> e.getSource().equals(source))
+                .filter(e -> e.getTarget().equals(target))
+                .findFirst().orElse(null);
+    }
+
+    public static void refresh() {
+        instance.revalidate();
+        instance.repaint();
+    }
+
     public static void reset() {
         selectedVertex = null;
+        Arrays.stream(instance.getComponents())
+                .filter(c -> c instanceof Model)
+                .map(c -> (Model) c)
+                .forEach(Model::unvisit);
     }
 
     private static boolean isValidLocation(int x, int y) {
@@ -65,8 +100,8 @@ public class Graph extends JPanel {
 
     private static Vertex findVertex(int x, int y) {
         Component component = instance.getComponentAt(x, y);
-        if (!(component instanceof Vertex)) {
-            if (!(component instanceof JLabel) && component.getName().startsWith("VertexLabel")) {
+        if (component != null && !(component instanceof Vertex)) {
+            if (!(component instanceof JLabel) && component.getName().startsWith(Vertex.VERTEX_LABEL_NAMEFIX)) {
                 return null;
             } else {
                 return (Vertex) component.getParent();
@@ -91,14 +126,15 @@ public class Graph extends JPanel {
         if (edge != null) {
             instance.add(edge);
             instance.add(edge.getLabel());
-            instance.add(Edge.of(edge.getTarget(), edge.getSource(), edge.getWeight()));
+            Edge ghostEdge = Edge.of(edge.getTarget(), edge.getSource(), edge.getWeight());
+            ghostEdge.setVisible(false);
+            instance.add(ghostEdge);
 
             // Reset selections
             selectedVertex.setBorder(null);
             vertex.setBorder(null);
             selectedVertex = null;
-            instance.revalidate();
-            instance.repaint();
+            refresh();
         }
     }
 

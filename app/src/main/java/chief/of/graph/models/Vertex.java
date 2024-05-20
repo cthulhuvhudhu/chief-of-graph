@@ -5,7 +5,7 @@ import chief.of.graph.SwingUtil;
 import javax.swing.*;
 import java.awt.*;
 
-public class Vertex extends JPanel {
+public class Vertex extends JPanel implements Model{
     public static final int VERTEX_SIZE = 50;
     private final char id;
     private final JLabel label;
@@ -34,7 +34,7 @@ public class Vertex extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.setColor(VERTEX_COLOR);
+        g.setColor(getBackground());
         g.fillOval(0, 0, VERTEX_SIZE, VERTEX_SIZE);
     }
 
@@ -80,7 +80,10 @@ public class Vertex extends JPanel {
 
     public void visit() {
         setBackground(VISITED_COLOR);
-        revalidate();
-        repaint();
+    }
+
+    @Override
+    public void unvisit() {
+        setBackground(VERTEX_COLOR);
     }
 }

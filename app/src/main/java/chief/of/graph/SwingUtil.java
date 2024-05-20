@@ -12,6 +12,7 @@ public class SwingUtil {
 
     public static final int WIDTH = 800;
     public static final int HEIGHT = 600;
+    public static final int DELAY = 500;
 
     public static JLabel label(String text) {
         JLabel jLabel = new JLabel(text, SwingConstants.CENTER);
