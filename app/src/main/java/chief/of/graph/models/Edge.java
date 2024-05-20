@@ -4,8 +4,10 @@ import chief.of.graph.SwingUtil;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Comparator;
+import java.util.Objects;
 
-public class Edge extends JPanel {
+public class Edge extends JPanel implements Model {
 
     private final Vertex source;
     private final Vertex target;
@@ -15,9 +17,10 @@ public class Edge extends JPanel {
 
     private static final Color EDGE_COLOR = SwingUtil.SAGE_GRN_COLOR;
     private static final Color MODE_LABEL = SwingUtil.DK_GRN_COLOR;
+    private static final Color VISITED_COLOR = SwingUtil.BT_GRN_COLOR;
     public static final String EDGE_NAMEFIX = "Edge ";
     public static final String EDGE_LABEL_NAMEFIX = "EdgeLabel ";
-
+    public static final Comparator<Edge> ascWeightComparator = Comparator.comparingInt(Edge::getWeight);
 
     public Edge(Vertex source, Vertex target, int weight) {
         this.source = source;
@@ -46,9 +49,14 @@ public class Edge extends JPanel {
         return weight;
     }
 
+    public String getId() {
+        return id;
+    }
+
     public static Edge of(Vertex source, Vertex target, int weight)  {
         Edge edge = new Edge(source, target, weight);
         edge.setName(EDGE_NAMEFIX + edge.id);
+        edge.setBackground(EDGE_COLOR);
         edge.setLayout(new GridBagLayout());
         edge.setVisible(true);
         edge.setOpaque(false);
@@ -67,6 +75,7 @@ public class Edge extends JPanel {
         int height = label.getPreferredSize().height;
 
         // Normalize the perpendicular vector
+        // TODO not working as expected, FIX
         double length = Math.sqrt(xDiff * xDiff + yDiff * yDiff);
         int padX = (int) (-yDiff * height / length);
         int padY = (int) (xDiff * height / length);
@@ -96,7 +105,7 @@ public class Edge extends JPanel {
 
         Point sourcePoint = SwingUtilities.convertPoint(source, new Point(0, 0), this);
         Point targetPoint = SwingUtilities.convertPoint(target, new Point(0, 0), this);
-        g.setColor(EDGE_COLOR);
+        g.setColor(getBackground());
         g.drawLine(sourcePoint.x + Vertex.diameter, sourcePoint.y + Vertex.diameter,
                 targetPoint.x + Vertex.diameter, targetPoint.y + Vertex.diameter);
     }
@@ -116,5 +125,30 @@ public class Edge extends JPanel {
                 return null;
             }
         }
+    }
+
+    public boolean isVisited() {
+        return getBackground().equals(VISITED_COLOR);
+    }
+
+    public void visit() {
+        setBackground(VISITED_COLOR);
+    }
+
+    @Override
+    public void unvisit() {
+        setBackground(EDGE_COLOR);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Edge edge)) return false;
+        return weight == edge.weight && Objects.equals(source, edge.source) && Objects.equals(target, edge.target);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(source, target, weight);
     }
 }

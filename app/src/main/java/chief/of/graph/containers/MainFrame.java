@@ -1,7 +1,8 @@
 package chief.of.graph.containers;
 
 import chief.of.graph.SwingUtil;
-import chief.of.graph.models.Modes;
+import chief.of.graph.states.AlgoModes;
+import chief.of.graph.states.EditModes;
 
 import javax.swing.*;
 
@@ -13,24 +14,6 @@ import java.util.stream.Collectors;
 
 public class MainFrame extends JFrame {
 
-    public static final JLabel modeLabel = createModeLabel();
-
-    private static JLabel createModeLabel() {
-        JLabel label = SwingUtil.label(Modes.defaultMode.getName());
-        label.setHorizontalAlignment(SwingConstants.RIGHT);
-        label.setName("Mode");
-        label.setVerticalAlignment(SwingConstants.TOP);
-        var font = label.getFont().deriveFont(Font.PLAIN, 14);
-        label.setFont(font);
-        label.setOpaque(true);
-        label.setBackground(SwingUtil.CREAM_COLOR);
-        label.setForeground(SwingUtil.DK_GRN_COLOR);
-        int padding = 5;
-        label.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
-
-        return label;
-    }
-
     public MainFrame() {
         super("Graph-Algorithms Visualizer");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -39,9 +22,11 @@ public class MainFrame extends JFrame {
         add(Graph.getInstance());
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(createFileMenu());
-        menuBar.add(createModeMenu());
+        menuBar.add(createEditModeMenu());
+        menuBar.add(createAlgoMenu());
         setJMenuBar(menuBar);
-        add(modeLabel, BorderLayout.NORTH);
+        add(EditModes.LABEL, BorderLayout.NORTH);
+        add(AlgoModes.displayLabel, BorderLayout.SOUTH);
         setVisible(true);
     }
 
@@ -49,18 +34,24 @@ public class MainFrame extends JFrame {
         JMenu menu = createMenu("File", KeyEvent.VK_F);
         JMenuItem newItem = createMenuItem("New", e -> {
             Graph.getInstance().removeAll();
-            revalidate();
-            repaint();
+            Graph.refresh();
         });
         JMenuItem exitItem = createMenuItem("Exit", e -> System.exit(0));
         menu.add(newItem);
         menu.add(exitItem);
         return menu;
     }
-
-    private JMenu createModeMenu() {
+    private JMenu createEditModeMenu() {
         JMenu menu = createMenu("Mode", KeyEvent.VK_M);
-        createModeMenuItems().forEach(menu::add);
+        createEditModeMenuItems().forEach(menu::add);
+        return menu;
+    }
+
+    private JMenu createAlgoMenu() {
+        JMenu menu = createMenu("Algorithms", KeyEvent.VK_A);
+        menu.add(createMenuItem(AlgoModes.Algorithm.DFS.getCopy(), algoActionListener));
+        menu.add(createMenuItem(AlgoModes.Algorithm.BFS.getCopy(), algoActionListener));
+        menu.add(createMenuItem(AlgoModes.Algorithm.DIJKSTRA.getCopy(), algoActionListener));
         return menu;
     }
 
@@ -79,10 +70,10 @@ public class MainFrame extends JFrame {
         return item;
     }
 
-    private List<JMenuItem> createModeMenuItems() {
-        return Arrays.stream(Modes.modes)
+    private List<JMenuItem> createEditModeMenuItems() {
+        return Arrays.stream(EditModes.modes)
                 .map(m -> {
-                    var item = createMenuItem(m.getName(), modeActionListener);
+                    var item = createMenuItem(m.getName(), editModeActionListener);
                     if (m.getHotkey() != null) {
                         item.setMnemonic(m.getHotkey());
                     }
@@ -91,13 +82,23 @@ public class MainFrame extends JFrame {
                 .collect(Collectors.toList());
     }
 
-    private final ActionListener modeActionListener = e -> {
+    private final ActionListener editModeActionListener = e -> {
         Graph.reset();
+        AlgoModes.displayLabel.setText(AlgoModes.defaultMode.copy());
         JMenuItem item = (JMenuItem) e.getSource();
-        Modes.Mode newMode = Arrays.stream(Modes.modes)
+        EditModes.Mode newMode = Arrays.stream(EditModes.modes)
                 .filter(m -> m.getName().equals(item.getText()))
-                .findFirst().orElse(Modes.defaultMode);
-        modeLabel.setText(newMode.getName());
+                .findFirst().orElse(EditModes.defaultMode);
+        EditModes.LABEL.setText(newMode.getCopy());
+        revalidate();
+        repaint();
+    };
+
+    private final ActionListener algoActionListener = e -> {
+        Graph.reset();
+        EditModes.LABEL.setText(EditModes.NONE.getCopy());
+        AlgoModes.currentAlgorithm = AlgoModes.Algorithm.getAlgorithm(((JMenuItem) e.getSource()).getText());
+        AlgoModes.displayLabel.setText(AlgoModes.SELECT_VERTEX.copy());
         revalidate();
         repaint();
     };
