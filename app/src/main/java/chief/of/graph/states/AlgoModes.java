@@ -21,6 +21,7 @@ public class AlgoModes {
         BFS("Breadth-First Search"),
         DFS("Depth-First Search"),
         DIJKSTRA("Dijkstra's Algorithm"),
+        PRIM("Prim's Algorithm"),
         NOT_SELECTED(null);
 
         private final String copy;
@@ -62,6 +63,12 @@ public class AlgoModes {
 
     public static void updateDisplayLabel(String text) {
         AlgoModes.displayLabel.setText(text);
+        refresh();
+    }
+
+    public static void reset() {
+        currentAlgorithm = Algorithm.NOT_SELECTED;
+        displayLabel.setText(defaultMode.copy);
         refresh();
     }
 
