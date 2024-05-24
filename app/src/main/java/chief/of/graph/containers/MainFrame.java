@@ -33,6 +33,8 @@ public class MainFrame extends JFrame {
     private JMenu createFileMenu() {
         JMenu menu = createMenu("File", KeyEvent.VK_F);
         JMenuItem newItem = createMenuItem("New", e -> {
+            AlgoModes.reset();
+            EditModes.reset();
             Graph.getInstance().removeAll();
             Graph.refresh();
         });
@@ -52,6 +54,7 @@ public class MainFrame extends JFrame {
         menu.add(createMenuItem(AlgoModes.Algorithm.DFS.getCopy(), algoActionListener));
         menu.add(createMenuItem(AlgoModes.Algorithm.BFS.getCopy(), algoActionListener));
         menu.add(createMenuItem(AlgoModes.Algorithm.DIJKSTRA.getCopy(), algoActionListener));
+        menu.add(createMenuItem(AlgoModes.Algorithm.PRIM.getCopy(), algoActionListener));
         return menu;
     }
 

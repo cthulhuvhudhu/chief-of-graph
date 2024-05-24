@@ -63,4 +63,10 @@ public class EditModes {
 
         return label;
     }
+
+    public static void reset() {
+        EditModes.LABEL.setText(defaultMode.getCopy());
+        LABEL.revalidate();
+        LABEL.repaint();
+    }
 }

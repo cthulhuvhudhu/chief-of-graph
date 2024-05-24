@@ -31,6 +31,11 @@ public class AlgorithmRunner {
                     dijkstra.execute();
                     (new DijkstraPainter()).paint(dijkstra.get());
                     break;
+                case PRIM:
+                    var prim = new PrimTask(vertex);
+                    prim.execute();
+                    (new PrimPainter()).paint(prim.get());
+                    break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + AlgoModes.currentAlgorithm);
             }
